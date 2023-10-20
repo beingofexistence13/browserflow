@@ -1,0 +1,519 @@
+<project name="YouTubeCenter" default="all-linux-x86_64" basedir=".">
+  <description>
+    Compiling script to different browsers.
+  </description>
+  
+  <taskdef resource="net/sf/antcontrib/antlib.xml">
+    <classpath>
+      <pathelement location="${basedir}/ant-libs/ant-contrib/ant-contrib-1.0b3.jar"/>
+    </classpath>
+  </taskdef>
+  
+  <property name="build.prop" value="${basedir}/build.properties" />
+  <property name="devbuild.number" value="${basedir}/devbuild.number" />
+  
+  <property name="crowdin.output" value="${basedir}/language.json" />
+  <property name="crowdin.jar" value="${basedir}/CrowdinManager.jar" />
+  <property name="crowdin.identifier" value="youtube-center" />
+  <property name="crowdin.path.key" value="${basedir}/crowdin.key" />
+  <property name="crowdin.path.base" value="${basedir}/base-english.json" />
+  <property name="crowdin.server.base" value="/base.json" />
+  <property name="crowdin.base.lang" value="en-US" />
+  
+  <property name="encoding" value="UTF-8" />
+  
+  <property name="name" value="YouTubeCenter" />
+  
+  <property name="build" value="${basedir}/build" />
+  <property name="src" value="${basedir}/src" />
+  <property name="dist" value="${basedir}/dist" />
+  <property name="cert" value="${basedir}/.cert" />
+  
+  <property name="buildDir" value="${build}/${name}" />
+  
+  <property name="cert.chromePath" value="${cert}/chrome" />
+  <property name="cert.chrome" value="${cert.chromePath}/${name}.pem" />
+  
+  <property name="src.chrome" value="${src}/.chrome" />
+  <property name="src.chrome-webstore" value="${src}/.chrome-webstore" />
+  <property name="src.maxthon" value="${src}/.maxthon" />
+  <property name="src.safari" value="${src}/.safari" />
+  <property name="src.opera" value="${src}/.opera" />
+  <property name="src.firefox" value="${src}/.firefox" />
+  <property name="src.meta" value="${src}/.meta" />
+  <property name="src.firefox-update" value="${src}/.firefox-update" />
+  <property name="src.chrome-update" value="${src}/.chrome-update" />
+  
+  <property name="firefox-update.update" value="${src.firefox-update}/firefox-update.rdf" />
+  <property name="firefox-update.install-part" value="${src.firefox-update}/firefox-install-part.rdf" />
+  
+  <property name="chrome-update.update" value="${src.chrome-update}/chrome-update.xml" />
+  <property name="chrome-update.install-part" value="${src.chrome-update}/chrome-install-part.json_part" />
+  
+  <property name="name.styles" value=".styles" />
+  <property name="src.styles" value="${src}/${name.styles}" />
+  
+  <property name="sdk.maxthon" value="${basedir}/bin/mxpack.py" />
+  <property name="sdk.yuicompressor" value="${basedir}/SDK/yuicompressor-2.4.7.jar" />
+  <property name="sdk.buildcrx" value="${basedir}/bin/buildcrx_linux_x86_64" />
+  <property name="sdk.buildcrx.windows-x86" value="${basedir}/bin/buildcrx_winnt_x86.exe" />
+  <property name="sdk.buildcrx.linux-x86" value="${basedir}/bin/buildcrx_linux_x86" />
+  <property name="sdk.buildcrx.linux-x86_64" value="${basedir}/bin/buildcrx_linux_x86_64" />
+  <property name="sdk.uhura-full-path" value="${basedir}/SDK/uhura" />
+  
+  <property name="build.safari" value="${basedir}/ant-build-safari.sh" />
+  <property name="build.safari-certs" value="${basedir}/ant-extract-certs-safari.sh" />
+  
+  <property name="indentifier.userscript" value="0" />
+  <property name="indentifier.chrome" value="1" />
+  <property name="indentifier.maxthon" value="2" />
+  <!-- #3 is Firefox legacy -->
+  <property name="indentifier.safari" value="4" />
+  <property name="indentifier.opera" value="5" />
+  <property name="indentifier.firefox" value="6" />
+  <property name="indentifier.scriptish" value="7" />
+  <property name="indentifier.chrome-webstore" value="8" />
+  
+  <!--<target name="all" depends="preinit, userscript, userscript-meta, chrome, chrome-webstore, maxthon, firefox, opera, safari, clean" />-->
+  <target name="all-windows-x86" depends="preinit, userscript, userscript-meta, chrome-windows-x86, chrome-webstore, maxthon, firefox, opera, clean" />
+  <target name="all-linux-x86" depends="preinit, userscript, userscript-meta, chrome-linux-x86, chrome-webstore, maxthon, firefox, opera, clean" />
+  <target name="all-linux-x86_64" depends="preinit, userscript, userscript-meta, chrome-linux-x86_64, chrome-webstore, maxthon, firefox, opera, clean" />
+  <target name="all-no-cert" depends="preinit, userscript, userscript-meta, chrome-webstore, maxthon, firefox, opera, clean" />
+  <target name="preinit">
+    <mkdir dir="${cert}" />
+    <mkdir dir="${dist}" />
+    <mkdir dir="${build}" />
+    <mkdir dir="${buildDir}" />
+    <mkdir dir="${src}" />
+    <mkdir dir="${src.chrome}" />
+    <mkdir dir="${src.firefox}" />
+    <mkdir dir="${src.maxthon}" />
+    <mkdir dir="${cert.chromePath}" />
+  </target>
+  
+  <!-- Downloads the translated languages and compiles into a ready format for compiling -->
+  <target name="language">
+    <loadfile property="crowdin.key" srcFile="${crowdin.path.key}" />
+    
+    <exec executable="java">
+      <arg value="-Dfile.encoding=UTF-8" />
+      <arg value="-jar" />
+      <arg value="${crowdin.jar}" />
+      <arg value="-m" /><arg value="build" />
+      <arg value="--key" /><arg value="${crowdin.key}" />
+      <arg value="--identifier" /><arg value="${crowdin.identifier}" />
+      <arg value="--include" /><arg value="${crowdin.path.base}" />
+      <arg value="--include-language" /><arg value="${crowdin.base.lang}" />
+      <arg value="--minify" />
+      <arg value="-o" /><arg value="${crowdin.output}" />
+    </exec>
+  </target>
+  <!-- Sends the English base language to Crowdin. -->
+  <target name="language-update">
+    <loadfile property="crowdin.key" srcFile="${crowdin.path.key}" />
+    
+    <exec executable="java">
+      <arg value="-Dfile.encoding=UTF-8" />
+      <arg value="-jar" />
+      <arg value="${crowdin.jar}" />
+      <arg value="-m" /><arg value="update" />
+      <arg value="--key" /><arg value="${crowdin.key}" />
+      <arg value="--identifier" /><arg value="${crowdin.identifier}" />
+      <arg value="--file" /><arg value="${crowdin.path.base}" />
+      <arg value="--filename" /><arg value="${crowdin.server.base}" />
+    </exec>
+  </target>
+  
+  <target name="styles">
+    <copy todir="${build}/${name.styles}">
+      <fileset dir="${src.styles}/" />
+    </copy>
+    <echo>Compressing:</echo>
+    <for param="file">
+      <path>
+        <fileset dir="${src.styles}/" includes="*.css" />
+      </path>
+      <sequential>
+        <propertyregex property="styles.filename" input="@{file}" regexp=".*(/|\\)([^\.]*)\.css" replace="\2" override="true" />
+        <echo>  ${styles.filename}.css</echo>
+        <java jar="${sdk.yuicompressor}" fork="true">
+          <arg value="@{file}" />
+          <arg value="-o" />
+          <arg value="${build}/${name.styles}/${styles.filename}.css" />
+        </java>
+      </sequential>
+    </for>
+  </target>
+  
+  <target name="apply-styles">
+    <copy todir="${build}/${name.styles}">
+      <fileset dir="${src.styles}/" />
+    </copy>
+    <for param="file">
+      <path>
+        <fileset dir="${src.styles}/" includes="*.css" />
+      </path>
+      <sequential>
+        <local name="styles.filename" />
+        <local name="styles.data" />
+        
+        <propertyregex property="styles.filename" input="@{file}" regexp=".*(/|\\)([^\.]*)\.css" replace="\2" />
+        <loadfile property="styles.data" srcFile="${build}/${name.styles}/${styles.filename}.css" />
+        <replace dir="${buildDir}" value="${styles.data}" token="@styles-${styles.filename}@" encoding="${encoding}" />
+      </sequential>
+    </for>
+  </target>
+  
+  <target name="clean-styles">
+    <delete dir="${build}/${name.styles}" />
+  </target>
+  
+  <target name="userscript" depends="preinit, copy-userscript">
+    <move todir="${dist}">
+      <fileset dir="${buildDir}">
+        <include name="*.js" />
+      </fileset>
+    </move>
+    <antcall target="clean" />
+  </target>
+  <target name="userscript-meta" depends="preinit, copy-userscript-meta">
+    <move todir="${dist}">
+      <fileset dir="${buildDir}">
+        <include name="*.js" />
+      </fileset>
+    </move>
+    <antcall target="clean" />
+  </target>
+  
+  <target name="dev" depends="preinit, copy-chrome">
+    <copy todir="${dist}/chrome-dev">
+      <fileset dir="${buildDir}" />
+    </copy>
+    <antcall target="clean" />
+  </target>
+  
+  <target name="chrome-windows-x86" depends="preinit, copy-chrome, chrome-zip, chrome-crx-windows-x86" />
+  <target name="chrome-linux-x86" depends="preinit, copy-chrome, chrome-zip, chrome-crx-linux-x86" />
+  <target name="chrome-linux-x86_64" depends="preinit, copy-chrome, chrome-zip, chrome-crx-linux-x86_64" />
+  <target name="chrome-webstore" depends="preinit, copy-chrome-webstore, chrome-webstore-zip" />
+  <target name="chrome-zip">
+    <zip destfile="${buildDir}/chrome.zip" basedir="${buildDir}" />
+  </target>
+  <target name="chrome-webstore-zip">
+    <zip destfile="${dist}/${name}-webstore.zip" basedir="${buildDir}" />
+    <antcall target="clean" />
+  </target>
+  
+  <target name="chrome-crx-windows-x86" depends="chrome-keycheck, build-chrome-key">
+    <exec executable="${sdk.buildcrx.windows-x86}">
+      <arg value="${buildDir}/chrome.zip" />
+      <arg value="${cert.chrome}" />
+      <arg value="${dist}/${name}.crx" />
+    </exec>
+    <antcall target="clean" />
+    
+    <loadproperties srcFile="${build.prop}"/>
+    <if>
+      <equals arg1="${@devbuild@}" arg2="true" />
+      <then>
+        <antcall target="chrome-update" />
+      </then>
+    </if>
+  </target>
+  
+  <target name="chrome-crx-linux-x86" depends="chrome-keycheck, build-chrome-key">
+    <exec executable="${sdk.buildcrx.linux-x86}">
+      <arg value="${buildDir}/chrome.zip" />
+      <arg value="${cert.chrome}" />
+      <arg value="${dist}/${name}.crx" />
+    </exec>
+    <antcall target="clean" />
+    
+    <loadproperties srcFile="${build.prop}"/>
+    <if>
+      <equals arg1="${@devbuild@}" arg2="true" />
+      <then>
+        <antcall target="chrome-update" />
+      </then>
+    </if>
+  </target>
+  
+  <target name="chrome-crx-linux-x86_64" depends="chrome-keycheck, build-chrome-key">
+    <exec executable="${sdk.buildcrx.linux-x86_64}">
+      <arg value="${buildDir}/chrome.zip" />
+      <arg value="${cert.chrome}" />
+      <arg value="${dist}/${name}.crx" />
+    </exec>
+    <antcall target="clean" />
+    
+    <loadproperties srcFile="${build.prop}"/>
+    <if>
+      <equals arg1="${@devbuild@}" arg2="true" />
+      <then>
+        <antcall target="chrome-update" />
+      </then>
+    </if>
+  </target>
+  
+  <target name="chrome-keycheck">
+    <condition property="cert.chrome.found">
+      <available file="${cert.chrome}" type="file" />
+    </condition>
+  </target>
+  
+  <target name="build-chrome-key" unless="cert.chrome.found">
+    <exec executable="${sdk.buildcrx}">
+      <arg value="-prv" />
+      <arg value="${cert.chrome}" />
+    </exec>
+  </target>
+  <target name="chrome-update" depends="preinit, copy-chrome-update">
+    <move todir="${dist}/">
+      <fileset dir="${buildDir}/" />
+    </move>
+    <antcall target="clean" />
+  </target>
+  
+  <target name="maxthon" depends="preinit, copy-maxthon">
+    <exec executable="python">
+      <arg value="${sdk.maxthon}" />
+      <arg value="${buildDir}" />
+      <arg value="${dist}/${name}.mxaddon" />
+    </exec>
+    <antcall target="clean" />
+  </target>
+  
+  <target name="firefox" depends="preinit, copy-firefox">
+    <zip destfile="${dist}/${name}.xpi" basedir="${buildDir}" />
+    <antcall target="clean" />
+    
+    <loadproperties srcFile="${build.prop}"/>
+    <if>
+      <equals arg1="${@devbuild@}" arg2="true" />
+      <then>
+        <antcall target="firefox-update" />
+      </then>
+    </if>
+  </target>
+  
+  <target name="firefox-update" depends="preinit, copy-firefox-update">
+    <move todir="${dist}/">
+      <fileset dir="${buildDir}/" />
+    </move>
+    <antcall target="clean" />
+  </target>
+  
+  <target name="safari" depends="preinit, copy-safari">
+    <mkdir dir="${dist}/${name}.safariextension" />
+		<move todir="${dist}/${name}.safariextension">
+      <fileset dir="${buildDir}/" />
+    </move>
+    <antcall target="clean" />
+    <exec executable="bash">
+      <arg value="${build.safari}" />
+    </exec>
+	</target>
+  
+  <target name="opera" depends="preinit, copy-opera">
+		<zip destfile="${dist}/${name}.oex" basedir="${buildDir}" />
+    <antcall target="clean" />
+	</target>
+  
+  <target name="devnumber">
+    <buildnumber file="${devbuild.number}" />
+  </target>
+  
+  <target name="buildnumber">
+    <property file="${devbuild.number}" />
+    <replace dir="${buildDir}" token="@devnumber@" value="${build.number}" encoding="${encoding}" />
+  </target>
+  
+  <target name="copy">
+    <copy todir="${buildDir}">
+      <fileset dir="${src}">
+        <include name="*.*" />
+        <exclude name=".*" />
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="copy-userscript-meta">
+    <copy todir="${buildDir}">
+      <fileset dir="${src.meta}/" />
+    </copy>
+    <antcall target="tokenreplace" />
+    <replace dir="${buildDir}" value="${indentifier.userscript}" token="@identifier@" encoding="${encoding}" />
+  </target>
+  
+  <target name="copy-userscript">
+    <antcall target="copy" />
+    <antcall target="tokenreplace" />
+    <antcall target="apply-styles" />
+    <replace dir="${buildDir}" value="${indentifier.userscript}" token="@identifier@" encoding="${encoding}" />
+  </target>
+  
+  <target name="copy-chrome">
+    <copy todir="${buildDir}">
+      <fileset dir="${src.chrome}/" />
+    </copy>
+    <copy todir="${buildDir}">
+      <fileset dir="${src}">
+        <include name="*.*" />
+        <exclude name=".*" />
+      </fileset>
+      <mapper>
+        <globmapper from="*.user.js" to="*.js" /> 
+      </mapper>
+    </copy>
+    <antcall target="tokenreplace" />
+    <antcall target="apply-styles" />
+    <replace dir="${buildDir}" value="${indentifier.chrome}" token="@identifier@" encoding="${encoding}" />
+  </target>
+  
+  <target name="copy-chrome-webstore">
+    <copy todir="${buildDir}">
+      <fileset dir="${src.chrome-webstore}/" />
+    </copy>
+    <copy todir="${buildDir}">
+      <fileset dir="${src}">
+        <include name="*.*" />
+        <exclude name=".*" />
+      </fileset>
+      <mapper>
+        <globmapper from="*.user.js" to="*.js" /> 
+      </mapper>
+    </copy>
+    <antcall target="tokenreplace-webstore" />
+    <antcall target="apply-styles" />
+    <replace dir="${buildDir}" value="${indentifier.chrome-webstore}" token="@identifier@" encoding="${encoding}" />
+  </target>
+  
+  <target name="copy-maxthon">
+    <copy todir="${buildDir}">
+      <fileset dir="${src.maxthon}/" />
+    </copy>
+    <antcall target="copy" />
+    <antcall target="tokenreplace" />
+    <antcall target="apply-styles" />
+    <replace dir="${buildDir}" value="${indentifier.maxthon}" token="@identifier@" encoding="${encoding}" />
+  </target>
+  
+  <target name="copy-firefox">
+    <antcall target="copy" />
+    <move todir="${buildDir}/data">
+      <fileset dir="${buildDir}" />
+      <mapper>
+        <globmapper from="*.user.js" to="*.js" /> 
+      </mapper>
+    </move>
+    <copy todir="${buildDir}">
+      <fileset dir="${src.firefox}/" />
+    </copy>
+    <antcall target="tokenreplace" />
+    <antcall target="apply-styles" />
+    <replace dir="${buildDir}" value="${indentifier.firefox}" token="@identifier@" encoding="${encoding}" />
+  </target>
+  
+  <target name="copy-firefox-update">
+    <copy file="${firefox-update.update}" todir="${buildDir}" />
+    <antcall target="tokenreplace" />
+  </target>
+  <target name="copy-chrome-update">
+    <copy file="${chrome-update.update}" todir="${buildDir}" />
+    <antcall target="tokenreplace" />
+  </target>
+  
+  <target name="copy-safari">
+    <copy todir="${buildDir}">
+      <fileset dir="${src.safari}/" />
+    </copy>
+    <antcall target="copy" />
+    <antcall target="tokenreplace" />
+    <antcall target="apply-styles" />
+    <replace dir="${buildDir}" value="${indentifier.safari}" token="@identifier@" encoding="${encoding}" />
+  </target>
+  
+  <target name="copy-opera">
+    <copy todir="${buildDir}/includes">
+      <fileset dir="${src}">
+        <include name="*.*" />
+        <exclude name=".*" />
+      </fileset>
+      <mapper>
+        <globmapper from="*.user.js" to="*.js" /> 
+      </mapper>
+    </copy>
+    <copy todir="${buildDir}">
+      <fileset dir="${src.opera}/" />
+    </copy>
+    <antcall target="tokenreplace" />
+    <antcall target="apply-styles" />
+    <replace dir="${buildDir}" value="${indentifier.opera}" token="@identifier@" encoding="${encoding}" />
+  </target>
+  
+  <target name="tokenreplace" depends="buildnumber">
+    <loadfile property="language.db.content" srcfile="${crowdin.output}" encoding="${encoding}" />
+    <loadfile property="firefox-update.install-part.content" srcfile="${firefox-update.install-part}" encoding="${encoding}" />
+    <loadfile property="chrome-update.install-part.content" srcfile="${chrome-update.install-part}" encoding="${encoding}" />
+    
+    <replace dir="${buildDir}" value="${language.db.content}" token="@ant-database-language@" encoding="${encoding}" />
+    
+    <loadproperties srcFile="${build.prop}"/>
+    <if>
+      <equals arg1="${@devbuild@}" arg2="true" />
+      <then>
+        <property file="${devbuild.number}" />
+        <replace dir="${buildDir}" value="${build.number}" token="@version@" encoding="${encoding}" />
+        <replace dir="${buildDir}" value="${@name-dev@}" token="@name@" encoding="${encoding}" />
+        <replace dir="${buildDir}" value="${@dev-downloadURL@}" token="@downloadURL@" encoding="${encoding}" />
+        <replace dir="${buildDir}" value="${@dev-updateURL@}" token="@updateURL@" encoding="${encoding}" />
+        <replace dir="${buildDir}" value="${firefox-update.install-part.content}" token="@firefox-update-install-part@" encoding="${encoding}" />
+        <replace dir="${buildDir}" value="${chrome-update.install-part.content}" token="@chrome-update-install-part@" encoding="${encoding}" />
+      </then>
+      <else>
+        <replace dir="${buildDir}" value="${@ant-version@}" token="@version@" encoding="${encoding}" />
+        <replace dir="${buildDir}" value="${@name-stable@}" token="@name@" encoding="${encoding}" />
+        <replace dir="${buildDir}" value="${@stable-downloadURL@}" token="@downloadURL@" encoding="${encoding}" />
+        <replace dir="${buildDir}" value="${@stable-updateURL@}" token="@updateURL@" encoding="${encoding}" />
+        <replace dir="${buildDir}" value="" token="@firefox-update-install-part@" encoding="${encoding}" />
+        <replace dir="${buildDir}" value="" token="@chrome-update-install-part@" encoding="${encoding}" />
+      </else>
+    </if>
+    <replace dir="${buildDir}" replacefilterfile="${build.prop}" encoding="${encoding}" />
+  </target>
+  
+  <target name="tokenreplace-webstore" depends="buildnumber">
+    <loadfile property="language.db.content" srcfile="${crowdin.output}" encoding="${encoding}" />
+    <loadresource property="language.db.content.r" encoding="${encoding}">
+      <string value="${language.db.content}"/>
+      <filterchain>
+        <replaceregex pattern="YouTube Center" replace="@chrome-webstore-name@" flags="g"/>
+      </filterchain>
+    </loadresource>
+    
+    <replace dir="${buildDir}" value="${language.db.content.r}" token="@ant-database-language@" encoding="${encoding}" />
+    <loadproperties srcFile="${build.prop}"/>
+    <if>
+      <equals arg1="${@devbuild@}" arg2="true" />
+      <then>
+        <property file="${devbuild.number}" />
+        <replace dir="${buildDir}" value="${build.number}" token="@version@" encoding="${encoding}" />
+        <replace dir="${buildDir}" value="${@chrome-webstore-name-dev@}" token="@name@" encoding="${encoding}" />
+        <replace dir="${buildDir}" value="${@dev-downloadURL@}" token="@downloadURL@" encoding="${encoding}" />
+        <replace dir="${buildDir}" value="${@dev-updateURL@}" token="@updateURL@" encoding="${encoding}" />
+      </then>
+      <else>
+        <replace dir="${buildDir}" value="${@ant-version@}" token="@version@" encoding="${encoding}" />
+        <replace dir="${buildDir}" value="${@chrome-webstore-name@}" token="@name@" encoding="${encoding}" />
+        <replace dir="${buildDir}" value="${@stable-downloadURL@}" token="@downloadURL@" encoding="${encoding}" />
+        <replace dir="${buildDir}" value="${@stable-updateURL@}" token="@updateURL@" encoding="${encoding}" />
+      </else>
+    </if>
+    <replace dir="${buildDir}" replacefilterfile="${build.prop}" encoding="${encoding}" />
+  </target>
+  
+  <target name="clean">
+    <delete dir="${buildDir}" />
+  </target>
+  <target name="clean-all" depends="clean, clean-styles" />
+</project>

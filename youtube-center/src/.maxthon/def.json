@@ -1,0 +1,36 @@
+[
+  {
+    "type": "extension",
+    "frameworkVersion": "1.0.0",
+    "version": "@version@",
+    "guid": "{7c967395-24b1-46b3-a83a-f28a8408c236}",
+    "name": "@name@",
+    "title": {
+      "en": "@name@"
+    },
+    "permissions": {
+      "httpRequest": [
+        "*.youtube.com",
+        "yeppha.github.io",
+        "s.ytimg.com",
+        "raw.github.com",
+        "apis.google.com",
+        "plus.googleapis.com",
+        "raw.githubusercontent.com"
+      ]
+    },
+    "actions": [
+      {
+        "type": "script",
+        "entryPoints": [ 'doc_start' ],
+        'include': [
+          "*.youtube.com",
+          "apis.google.com",
+          "plus.googleapis.com"
+        ],
+        "js": [ "YouTubeCenter.user.js" ],
+        "includeFrames": true
+      }
+    ]
+  }
+]

@@ -1,0 +1,33 @@
+uBlock Origin (uBO) is a CPU and memory-efficient wide-spectrum content blocker that blocks ads, trackers, coin miners, popups, annoying anti-blockers, etc., using the following list of filters, enabled by default:
+
+- EasyList (ads)
+- EasyPrivacy (tracking)
+- Peter Lowe's Blocklist
+- Online Malicious URL Blocklist
+- uBO filter lists
+
+More lists are available for you to select if you wish:
+
+- EasyList Cookie List
+- Fanboy's Annoyance List
+- AdGuard Annoyances
+- Dan Pollock’s hosts file
+- And many others
+
+Additionally, you can point-and-click to block JavaScript locally or globally, create your own global or local rules to override entries from filter lists, and many more advanced features.
+
+***
+
+Free. Open source with public license (GPLv3). For users by users. No donations sought.
+
+If you ever want to contribute something, think about the people working hard to maintain the filter lists you are using, which were made available to use by all for free.
+
+You can help contribute by translating uBO on Crowdin.
+
+***
+
+    [Documentation](https://github.com/gorhill/uBlock#ublock-origin-ubo)
+    [Release Notes](https://github.com/gorhill/uBlock/releases)
+    [Support Forum on Reddit](https://www.reddit.com/r/uBlockOrigin/)
+    [Contributors on GitHub](https://github.com/gorhill/uBlock/graphs/contributors)
+    [Contribute on Crowdin](https://crowdin.com/project/ublock)

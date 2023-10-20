@@ -1,0 +1,12 @@
+# experiments
+/experiments
+
+# language.sh
+/crowdin.key
+
+# Some NODEJS
+/node_modules
+
+#/bin
+buildcrx_winnt_*
+buildcrx_linux_*
